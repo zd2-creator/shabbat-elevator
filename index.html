@@ -98,14 +98,20 @@
   .roof{height:16px;background:linear-gradient(180deg,#c46a2b,#a85920);border-radius:10px 10px 4px 4px;margin:0 8px 8px;box-shadow:inset 0 -3px 6px rgba(0,0,0,.12);}
   .core{position:relative;display:flex;gap:8px;}
   .floors{flex:1;display:flex;flex-direction:column;gap:5px;}
-  .floor-row{display:flex;align-items:center;gap:10px;height:36px;padding:0 6px;direction:rtl;}
-  .floor-tag{flex:0 0 auto;min-width:34px;font-size:12.5px;font-weight:700;color:var(--ink-soft);text-align:center;}
-  .floor-track{position:relative;flex:1 1 auto;display:flex;height:14px;background:var(--g0);border-radius:7px;overflow:hidden;}
-  .floor-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--g3),var(--g4));transition:width .4s ease;}
-  .floor-no-fill{height:100%;width:0%;background:#b6c0cc;transition:width .4s ease;}
-  .floor-count{flex:0 0 auto;min-width:22px;font-size:12.5px;font-weight:700;color:var(--g-deep);text-align:center;}
-  .floor-no{flex:0 0 auto;min-width:22px;font-size:12.5px;font-weight:700;color:#5b6675;text-align:center;display:flex;align-items:center;gap:3px;}
-  .floor-no::before{content:"";width:8px;height:8px;border-radius:2px;background:#b6c0cc;}
+  .floor-row{display:flex;align-items:center;gap:11px;height:38px;padding:0 8px;direction:rtl;border-radius:var(--radius-sm);}
+  .floor-tag{flex:0 0 auto;min-width:30px;height:26px;padding:0 9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink-soft);background:var(--g0);border-radius:8px;font-variant-numeric:tabular-nums;}
+  .floor-track{position:relative;flex:1 1 auto;display:flex;height:13px;background:var(--g0);border-radius:7px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);}
+  .floor-fill{height:100%;width:0%;background:var(--g4);transition:width .35s ease;}
+  .floor-no-fill{height:100%;width:0%;background:#aab4c0;transition:width .35s ease;}
+  .floor-stats{flex:0 0 auto;display:flex;align-items:center;gap:9px;}
+  .floor-stat{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+  .floor-stat .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}
+  .floor-stat.want{color:var(--g-deep);}
+  .floor-stat.want .dot{background:var(--g4);}
+  .floor-stat.no{color:#4a5564;}
+  .floor-stat.no .dot{background:#aab4c0;}
+  .floor-cap{color:var(--ink-muted);font-weight:400;font-size:11px;}
+  .floor-no:empty,.floor-stat.no[data-zero="1"]{display:none;}
 
   .shaft{width:50px;flex-shrink:0;position:relative;background:repeating-linear-gradient(180deg,#efe7d9 0 2px,#f6efe3 2px 4px);
     border:1px solid var(--line);border-radius:8px;overflow:hidden;}
@@ -180,10 +186,10 @@
 
   <div class="card">
     <h2 class="card-title">🏢 מפת הבניין</h2>
-    <p class="card-sub">בכל קומה: <b style="color:var(--g-deep)">ירוק</b> = רוצים שהמעלית תעצור · <b style="color:#5b6675">סלייט</b> = אין צורך. ככל שהפס ארוך יותר — יותר דיירים.</p>
+    <p class="card-sub">כל קומה מתוך הדירות שבה: <b style="color:var(--g-deep)">ירוק</b> = רוצים · <b style="color:#4a5564">סלייט</b> = אין צורך · ריק = טרם ענו.</p>
     <div class="legend">
-      <span><span class="sw" style="background:linear-gradient(90deg,var(--g3),var(--g4))"></span> רוצים מעלית</span>
-      <span><span class="sw" style="background:#b6c0cc"></span> אין צורך</span>
+      <span><span class="sw" style="background:var(--g4)"></span> רוצים מעלית</span>
+      <span><span class="sw" style="background:#aab4c0"></span> אין צורך</span>
     </div>
     <div class="building">
       <div class="roof"></div>
@@ -203,6 +209,8 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKFZgmX7gvMUWGo1MCgL3BHGl59KJaJ7z_ogww2USv3FNx1wkePC9spYt9FxjSYWoS3w/exec'; // ← הדבק כאן את כתובת ה-/exec של הפריסה החדשה
 const FLOORS = 14;          // מספר הקומות בבניין (ניתן לשינוי)
 const BUILDING_NAME = '110';
+const FLOOR_CAP = { 12: 2, 13: 2 }; // מספר דירות בקומה (ברירת מחדל 4)
+function floorCapacity(f){ return FLOOR_CAP[f] || 4; }
 // ─────────────────────────────────────────────────────────
 
 const floorRows = {}; // floor number -> row element
@@ -234,21 +242,27 @@ function selectWant(v){
 (function buildBuilding(){
   const floors = document.getElementById('floors');
   for (let f = FLOORS; f >= 1; f--) {
+    const cap = floorCapacity(f);
     const row = document.createElement('div');
     row.className = 'floor-row';
     row.dataset.floor = String(f);
     row.innerHTML =
       '<span class="floor-tag">' + f + '</span>' +
-      '<div class="floor-track"><span class="floor-fill" style="width:0%"></span><span class="floor-no-fill" style="width:0%"></span></div>' +
-      '<span class="floor-count">0</span>' +
-      '<span class="floor-no" style="display:none">0</span>';
+      '<div class="floor-track" role="img" aria-label="טוען"><div class="floor-fill" style="width:0%"></div><div class="floor-no-fill" style="width:0%"></div></div>' +
+      '<div class="floor-stats">' +
+        '<span class="floor-stat want"><i class="dot"></i><span class="floor-count">0</span><span class="floor-cap">/' + cap + '</span></span>' +
+        '<span class="floor-stat no" data-zero="1"><i class="dot"></i><span class="floor-no"></span></span>' +
+      '</div>';
     floors.appendChild(row);
     floorRows[f] = {
+      cap: cap,
       row: row,
+      track: row.querySelector('.floor-track'),
       fill: row.querySelector('.floor-fill'),
       noFill: row.querySelector('.floor-no-fill'),
       count: row.querySelector('.floor-count'),
-      no: row.querySelector('.floor-no')
+      no: row.querySelector('.floor-no'),
+      noStat: row.querySelector('.floor-stat.no')
     };
   }
 })();
@@ -288,21 +302,18 @@ function loadProgress(){
     .then(function(data){
       const fw = data.floorWant || {};
       const fn = data.floorNo || {};
-      let gmax = 1;
-      for (let f = 1; f <= FLOORS; f++) {
-        const tot = (parseInt(fw[f],10)||0) + (parseInt(fn[f],10)||0);
-        if (tot > gmax) gmax = tot;
-      }
       activeFloors = [];
       for (let f = 1; f <= FLOORS; f++) {
-        const w = parseInt(fw[f], 10) || 0;
-        const n = parseInt(fn[f], 10) || 0;
         const ref = floorRows[f]; if (!ref) continue;
-        ref.fill.style.width   = (w / gmax * 100) + '%';
-        ref.noFill.style.width = (n / gmax * 100) + '%';
+        const cap = ref.cap || 4;
+        const w = Math.min(parseInt(fw[f], 10) || 0, cap);
+        const n = Math.min(parseInt(fn[f], 10) || 0, cap);
+        ref.fill.style.width   = (w / cap * 100) + '%';
+        ref.noFill.style.width = (n / cap * 100) + '%';
         ref.count.textContent  = w;
-        if (n > 0) { ref.no.textContent = n; ref.no.style.display = 'flex'; }
-        else { ref.no.style.display = 'none'; }
+        if (n > 0) { ref.no.textContent = n; ref.noStat.removeAttribute('data-zero'); }
+        else { ref.no.textContent = ''; ref.noStat.setAttribute('data-zero', '1'); }
+        ref.track.setAttribute('aria-label', w + ' מתוך ' + cap + ' רוצים' + (n > 0 ? (' · ' + n + ' אין צורך') : ''));
         if (w > 0) activeFloors.push(f);
       }
       activeFloors.sort(function(a,b){ return a - b; });
