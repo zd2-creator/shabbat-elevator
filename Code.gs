@@ -36,18 +36,25 @@ function readSheet_(sh) {
   return { headers: headers, rows: rows };
 }
 
-// ציבורי: ספירה לכל קומה + דירות שנרשמו (בלי מידע אישי).
+// ציבורי: ספירה לכל קומה (רוצים / לא-צריך) + דירות שנרשמו (בלי מידע אישי).
 function getProgress_() {
   var rows = readSheet_(sheet_()).rows;
-  var floorCounts = {};
+  var floorWant = {}, floorNo = {};
   var registeredApts = [];
+  var wantCount = 0, noCount = 0;
   rows.forEach(function (r) {
+    var wantsIt = String(r.want) !== 'no'; // ברירת מחדל: רוצה (תאימות לאחור)
     var f = parseInt(r.floor, 10);
-    if (!isNaN(f)) floorCounts[f] = (floorCounts[f] || 0) + 1;
+    if (!isNaN(f)) {
+      if (wantsIt) floorWant[f] = (floorWant[f] || 0) + 1;
+      else         floorNo[f]   = (floorNo[f]   || 0) + 1;
+    }
+    if (wantsIt) wantCount++; else noCount++;
     var a = parseInt(r.apt, 10);
     if (!isNaN(a) && registeredApts.indexOf(a) === -1) registeredApts.push(a);
   });
-  return { status: 'ok', floorCounts: floorCounts, registeredApts: registeredApts, count: registeredApts.length };
+  return { status: 'ok', floorWant: floorWant, floorNo: floorNo, registeredApts: registeredApts,
+           count: registeredApts.length, wantCount: wantCount, noCount: noCount };
 }
 
 function aptExists_(apt) {
@@ -67,18 +74,20 @@ function handleSubmit_(d) {
   var sh = sheet_();
   if (aptExists_(apt)) return { status: 'error', message: 'דירה ' + apt + ' כבר נרשמה' };
 
+  var want = (String(d.want) === 'no') ? 'no' : 'yes';
   var record = {
     ts: new Date().toLocaleString('he-IL'),
     floor: floor,
     apt: apt,
-    name: String(d.name).slice(0, 80)
+    name: String(d.name).slice(0, 80),
+    want: want
   };
   var headers = readSheet_(sh).headers;
   var row;
   if (headers.length) {
     row = headers.map(function (h) { return record.hasOwnProperty(h) ? record[h] : ''; });
   } else {
-    var dh = ['ts', 'floor', 'apt', 'name'];
+    var dh = ['ts', 'floor', 'apt', 'name', 'want'];
     sh.appendRow(dh);
     row = dh.map(function (h) { return record[h]; });
   }
