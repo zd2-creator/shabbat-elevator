@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>טופס בקשה למעלית שבת · בניין 110</title>
+
+<!-- ── תצוגה מקדימה בוואטסאפ / רשתות (Open Graph) ── -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://zd2-creator.github.io/shabbat-elevator/">
+<meta property="og:title" content="🛗 טופס בקשה למעלית שבת — בניין 110">
+<meta property="og:description" content="רשמו את הדירה והקומה שלכם, ונדע באילו קומות להפעיל את מעלית השבת 🙏">
+<meta property="og:image" content="https://zd2-creator.github.io/shabbat-elevator/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="he_IL">
+<meta property="og:site_name" content="ועד בית · בניין 110">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#e08a4b">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbf7f1; --bg-warm:#fdf3ea; --card:#fff; --ink:#3a3128; --ink-soft:#6b5f51; --ink-muted:#9b8f7e;
+    --line:#ece2d4; --line-soft:#f4ecdf; --brand:#e08a4b; --brand-deep:#c46a2b; --brand-soft:#fbeede;
+    --g0:#ece5d8; --g1:#d5ebd9; --g2:#a9dcb6; --g3:#73c98c; --g4:#3fae66; --g-deep:#2f8a5e;
+    --err:#d6603c; --err-soft:#fcebe4;
+    --radius:20px; --radius-sm:13px;
+    --shadow:0 12px 34px -16px rgba(120,90,55,.32); --shadow-sm:0 5px 16px -10px rgba(120,90,55,.34);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Heebo',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);line-height:1.6;
+    min-height:100vh;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 540px at 85% -10%, #fdeede 0%, rgba(253,238,222,0) 55%),
+      radial-gradient(800px 480px at 0% 0%, #eef6ef 0%, rgba(238,246,239,0) 50%),
+      var(--bg);
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px;}
+
+  .hero{text-align:center;padding:24px 14px 18px;}
+  .hero .badge{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);
+    color:var(--ink-soft);font-size:13px;font-weight:700;padding:7px 15px;border-radius:999px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+  .hero h1{font-size:25px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px;line-height:1.28;}
+  .hero p{margin:0 auto;max-width:420px;color:var(--ink-soft);font-size:15px;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;margin-bottom:18px;}
+  .card-title{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;margin:0 0 4px;}
+  .card-sub{font-size:13.5px;color:var(--ink-muted);margin:0 0 18px;}
+
+  .field{margin-bottom:16px;}
+  label.lbl{display:block;font-size:14.5px;font-weight:700;margin-bottom:8px;}
+  label.lbl .req{color:var(--brand-deep);}
+  input,select{width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:var(--bg-warm);
+    border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:13px 14px;outline:none;
+    transition:border-color .15s,box-shadow .15s,background .15s;}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239b8f7e' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:left 14px center;}
+  input::placeholder{color:#bcae9b;}
+  input:focus,select:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(224,138,75,.16);}
+  input.invalid,select.invalid{border-color:var(--err);box-shadow:0 0 0 4px rgba(214,96,60,.14);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  .err-text{display:none;color:var(--err);font-size:13px;font-weight:500;margin-top:7px;}
+  .err-text.show{display:block;}
+
+  .submit-btn{width:100%;font-family:inherit;font-size:17px;font-weight:800;color:#fff;
+    background:linear-gradient(180deg,#e8985c,#d8772f);border:none;border-radius:var(--radius-sm);
+    padding:15px;cursor:pointer;margin-top:4px;box-shadow:0 10px 24px -12px rgba(216,119,47,.8);transition:transform .12s,filter .15s;}
+  .submit-btn:hover{filter:brightness(1.04);} .submit-btn:active{transform:translateY(1px);}
+  .submit-btn:disabled{background:#cbb9a3;box-shadow:none;cursor:not-allowed;}
+  .loading{display:none;text-align:center;color:var(--ink-muted);font-size:14px;padding:10px;}
+
+  .success{display:none;text-align:center;padding:36px 18px;}
+  .success .big{font-size:54px;}
+  .success h2{font-size:20px;color:var(--g-deep);margin:8px 0 6px;}
+  .success p{color:var(--ink-soft);margin:0;}
+
+  /* ── Building visualization ── */
+  .legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-muted);margin-bottom:14px;}
+  .legend .sw{width:15px;height:15px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.05);}
+  .building{position:relative;background:linear-gradient(180deg,#fffdfa,#fbf5ec);border:1px solid var(--line);border-radius:16px;padding:12px;}
+  .roof{height:16px;background:linear-gradient(180deg,#c46a2b,#a85920);border-radius:10px 10px 4px 4px;margin:0 8px 8px;box-shadow:inset 0 -3px 6px rgba(0,0,0,.12);}
+  .core{position:relative;display:flex;gap:8px;}
+  .floors{flex:1;display:flex;flex-direction:column;gap:5px;}
+  .floor-row{display:flex;align-items:center;gap:9px;height:34px;border-radius:9px;padding:0 8px;
+    background:var(--g0);border:1px solid var(--line-soft);transition:background .4s,box-shadow .4s;}
+  .floor-tag{flex-shrink:0;width:30px;text-align:center;font-size:13px;font-weight:800;color:var(--ink-soft);}
+  .floor-track{flex:1;height:11px;background:rgba(0,0,0,.05);border-radius:7px;overflow:hidden;}
+  .floor-fill{height:100%;width:0%;border-radius:7px;background:var(--g4);transition:width .6s cubic-bezier(.34,1.2,.5,1);}
+  .floor-count{flex-shrink:0;min-width:30px;text-align:center;font-size:12.5px;font-weight:800;color:var(--ink-muted);}
+  .floor-stop{flex-shrink:0;width:18px;text-align:center;font-size:13px;opacity:0;transition:opacity .3s;}
+  .floor-row.active{background:var(--g1);box-shadow:inset 0 0 0 1.5px var(--g3);}
+  .floor-row.active .floor-stop{opacity:1;}
+  .floor-row.active .floor-count{color:var(--g-deep);}
+  .d1{background:var(--g1)!important;} .d2{background:var(--g2)!important;} .d3{background:var(--g3)!important;} .d4{background:var(--g4)!important;}
+
+  .shaft{width:50px;flex-shrink:0;position:relative;background:repeating-linear-gradient(180deg,#efe7d9 0 2px,#f6efe3 2px 4px);
+    border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .car{position:absolute;inset-inline:5px;height:30px;top:4px;border-radius:7px;
+    background:linear-gradient(180deg,#ffd9a8,#f0a35a);border:1px solid #d8772f;
+    display:flex;align-items:center;justify-content:center;font-size:17px;opacity:0;
+    transition:top 1.1s cubic-bezier(.5,.05,.3,1),opacity .4s;box-shadow:0 4px 10px -4px rgba(216,119,47,.7);z-index:2;}
+  .ground{margin:8px 8px 0;height:22px;border-radius:4px 4px 10px 10px;background:linear-gradient(180deg,#e7dcc9,#d8cab2);
+    display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#7a6c56;}
+
+  .prog{margin-top:14px;text-align:center;font-size:13.5px;color:var(--ink-soft);}
+  .prog strong{color:var(--brand-deep);}
+  .mini-spin{display:inline-block;width:14px;height:14px;border:2px solid #eadfce;border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="badge">🛗 מעלית שבת</span>
+    <h1>באילו קומות שתעצור מעלית השבת?</h1>
+    <p>רשמו את הדירה והקומה שלכם. לפי הביקוש נראה באילו קומות כדאי שהמעלית תעצור בשבת.</p>
+  </div>
+
+  <div class="card" id="formCard">
+    <h2 class="card-title">📝 רישום הדירה שלי</h2>
+    <p class="card-sub">דירה אחת — רישום אחד. רק קומה, דירה ושם.</p>
+
+    <div class="grid2">
+      <div class="field">
+        <label class="lbl">קומה <span class="req">*</span></label>
+        <select id="floor"><option value="" disabled selected>בחר/י קומה</option></select>
+        <p class="err-text" id="floorErr"></p>
+      </div>
+      <div class="field">
+        <label class="lbl">מספר דירה <span class="req">*</span></label>
+        <input type="text" id="apt" inputmode="numeric" placeholder="לדוגמה 34" />
+        <p class="err-text" id="aptErr"></p>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lbl">שם <span class="req">*</span></label>
+      <input type="text" id="name" placeholder="שם מלא" autocomplete="name" />
+      <p class="err-text" id="nameErr"></p>
+    </div>
+
+    <button class="submit-btn" id="submitBtn">רשום/י אותי ✓</button>
+    <div class="loading" id="loading">שולח… <span class="mini-spin"></span></div>
+  </div>
+
+  <div class="card success" id="successCard">
+    <div class="big">🛗✨</div>
+    <h2>נרשמת בהצלחה!</h2>
+    <p id="successMsg"></p>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">🏢 מפת הבניין</h2>
+    <p class="card-sub">ככל שקומה ירוקה יותר — יותר דיירים ביקשו שהמעלית תעצור בה. <span style="white-space:nowrap">⏹ = קומה עם ביקוש</span></p>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--g0)"></span> אין</span>
+      <span><span class="sw" style="background:var(--g1)"></span> 1</span>
+      <span><span class="sw" style="background:var(--g2)"></span> 2</span>
+      <span><span class="sw" style="background:var(--g3)"></span> 3-4</span>
+      <span><span class="sw" style="background:var(--g4)"></span> 5+</span>
+    </div>
+    <div class="building">
+      <div class="roof"></div>
+      <div class="core">
+        <div class="floors" id="floors"></div>
+        <div class="shaft" id="shaft"><div class="car" id="car">🛗</div></div>
+      </div>
+      <div class="ground">▢ קומת קרקע · לובי</div>
+    </div>
+    <div class="prog" id="prog"><span class="mini-spin"></span> טוען נתונים…</div>
+  </div>
+
+</div>
+
+<script>
+// ── הגדרות ──────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKFZgmX7gvMUWGo1MCgL3BHGl59KJaJ7z_ogww2USv3FNx1wkePC9spYt9FxjSYWoS3w/exec'; // ← הדבק כאן את כתובת ה-/exec של הפריסה החדשה
+const FLOORS = 14;          // מספר הקומות בבניין (ניתן לשינוי)
+const BUILDING_NAME = '110';
+// ─────────────────────────────────────────────────────────
+
+const floorRows = {}; // floor number -> row element
+let activeFloors = [], carIdx = 0, carTimer = null;
+
+// בניית בורר הקומות
+(function buildFloorSelect(){
+  const sel = document.getElementById('floor');
+  for (let f = FLOORS; f >= 1; f--) {
+    const o = document.createElement('option');
+    o.value = String(f); o.textContent = 'קומה ' + f;
+    sel.appendChild(o);
+  }
+})();
+
+// בניית שלד הבניין (מלמעלה למטה)
+(function buildBuilding(){
+  const floors = document.getElementById('floors');
+  for (let f = FLOORS; f >= 1; f--) {
+    const row = document.createElement('div');
+    row.className = 'floor-row';
+    row.dataset.floor = String(f);
+    const tag = document.createElement('div'); tag.className = 'floor-tag'; tag.textContent = f;
+    const track = document.createElement('div'); track.className = 'floor-track';
+    const fill = document.createElement('div'); fill.className = 'floor-fill'; track.appendChild(fill);
+    const count = document.createElement('div'); count.className = 'floor-count'; count.textContent = '0';
+    const stop = document.createElement('div'); stop.className = 'floor-stop'; stop.textContent = '⏹';
+    row.appendChild(tag); row.appendChild(track); row.appendChild(count); row.appendChild(stop);
+    floors.appendChild(row);
+    floorRows[f] = { row: row, fill: fill, count: count };
+  }
+})();
+
+// ── מעלית: מיקום ותנועה בין קומות עם ביקוש ──
+function positionCar(floor){
+  const ref = floorRows[floor]; if (!ref) return;
+  const car = document.getElementById('car');
+  const shaft = document.getElementById('shaft');
+  const rRect = ref.row.getBoundingClientRect();
+  const sRect = shaft.getBoundingClientRect();
+  let top = (rRect.top - sRect.top) + (rRect.height - car.offsetHeight) / 2;
+  top = Math.max(2, Math.min(top, shaft.clientHeight - car.offsetHeight - 2));
+  car.style.top = top + 'px';
+}
+function runElevator(){
+  clearInterval(carTimer);
+  const car = document.getElementById('car');
+  if (!activeFloors.length) { car.style.opacity = '0'; return; }
+  car.style.opacity = '1';
+  carIdx = 0; positionCar(activeFloors[0]);
+  if (activeFloors.length > 1) {
+    carTimer = setInterval(function(){
+      carIdx = (carIdx + 1) % activeFloors.length;
+      positionCar(activeFloors[carIdx]);
+    }, 1900);
+  }
+}
+window.addEventListener('resize', function(){ if (activeFloors.length) positionCar(activeFloors[carIdx]); });
+
+// ── טעינת התקדמות + צביעת הבניין ──
+function bucketClass(c){ return c >= 5 ? 'd4' : c >= 3 ? 'd3' : c === 2 ? 'd2' : c === 1 ? 'd1' : ''; }
+
+function loadProgress(){
+  fetch(SCRIPT_URL + '?action=progress', { method:'GET' })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      const fc = data.floorCounts || {};
+      activeFloors = [];
+      for (let f = 1; f <= FLOORS; f++) {
+        const c = parseInt(fc[f], 10) || 0;
+        const ref = floorRows[f]; if (!ref) continue;
+        ref.count.textContent = c;
+        ref.fill.style.width = Math.min(c, 5) / 5 * 100 + '%';
+        ref.row.className = 'floor-row' + (c > 0 ? ' active ' + bucketClass(c) : '');
+        if (c > 0) activeFloors.push(f);
+      }
+      activeFloors.sort(function(a,b){ return a - b; });
+      const total = data.count || 0;
+      const floorsWithDemand = activeFloors.length;
+      document.getElementById('prog').innerHTML =
+        '<strong>' + total + '</strong> דירות נרשמו · <strong>' + floorsWithDemand + '</strong> קומות עם ביקוש';
+      runElevator();
+    })
+    .catch(function(){ document.getElementById('prog').textContent = 'לא ניתן לטעון את הנתונים כרגע.'; });
+}
+
+// ── ולידציה והגשה ──
+function showError(field, msg){
+  const inp = document.getElementById(field === 'floor' ? 'floor' : field);
+  const err = document.getElementById(field + 'Err');
+  if (inp) inp.classList.add('invalid');
+  if (err) { err.textContent = msg; err.classList.add('show'); }
+}
+function clearError(field){
+  const inp = document.getElementById(field === 'floor' ? 'floor' : field);
+  const err = document.getElementById(field + 'Err');
+  if (inp) inp.classList.remove('invalid');
+  if (err) err.classList.remove('show');
+}
+['floor','apt','name'].forEach(function(f){
+  const el = document.getElementById(f);
+  el.addEventListener('input', function(){ clearError(f); });
+  el.addEventListener('change', function(){ clearError(f); });
+});
+
+document.getElementById('submitBtn').addEventListener('click', function(){
+  const floor = document.getElementById('floor').value.trim();
+  const apt = document.getElementById('apt').value.trim();
+  const name = document.getElementById('name').value.trim();
+  clearError('floor'); clearError('apt'); clearError('name');
+
+  let ok = true, firstBad = null;
+  if (!floor) { showError('floor','נא לבחור קומה.'); ok = false; firstBad = firstBad || 'floor'; }
+  if (!apt || isNaN(parseInt(apt,10))) { showError('apt','נא להזין מספר דירה.'); ok = false; firstBad = firstBad || 'apt'; }
+  if (!name) { showError('name','נא להזין שם.'); ok = false; firstBad = firstBad || 'name'; }
+  if (!ok) { document.getElementById(firstBad).focus(); return; }
+
+  const btn = document.getElementById('submitBtn');
+  const loading = document.getElementById('loading');
+  btn.disabled = true; loading.style.display = 'block';
+
+  // בדיקת כפילות (UX) — האימות הסופי בשרת
+  fetch(SCRIPT_URL + '?action=progress', { method:'GET' })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      const taken = new Set((data.registeredApts || []).map(Number));
+      if (taken.has(parseInt(apt,10))) {
+        showError('apt','דירה ' + apt + ' כבר נרשמה. לפנייה: מנהל הבניין.');
+        btn.disabled = false; loading.style.display = 'none';
+        document.getElementById('apt').focus();
+        return;
+      }
+      return fetch(SCRIPT_URL, {
+        method:'POST', headers:{ 'Content-Type':'text/plain' },
+        body: JSON.stringify({ action:'submit', apt: parseInt(apt,10), floor: parseInt(floor,10), name: name })
+      }).then(function(r){ return r.json(); }).then(function(res){
+        if (res && res.status === 'ok') { onSuccess(apt, floor, name); }
+        else { throw new Error((res && res.message) || 'error'); }
+      });
+    })
+    .catch(function(){
+      showError('apt','שגיאה בשליחה — נסו שוב.');
+      btn.disabled = false; loading.style.display = 'none';
+    });
+});
+
+function onSuccess(apt, floor, name){
+  document.getElementById('formCard').style.display = 'none';
+  const msg = document.getElementById('successMsg');
+  // טקסט מוצג עם textContent (בטוח מ-XSS)
+  msg.textContent = name + ', דירה ' + apt + ' בקומה ' + floor + ' — נרשמה לבקשת מעלית שבת.';
+  document.getElementById('successCard').style.display = 'block';
+  loadProgress();
+}
+
+loadProgress();
+</script>
+</body>
+</html>

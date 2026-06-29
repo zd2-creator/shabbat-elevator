@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מעלית שבת — אדמין</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbf7f1; --card:#fff; --ink:#3a3128; --ink-soft:#6b5f51; --ink-muted:#9b8f7e;
+    --line:#ece2d4; --line-soft:#f4ecdf; --brand:#e08a4b;
+    --g0:#ece5d8; --g1:#d5ebd9; --g2:#a9dcb6; --g3:#73c98c; --g4:#3fae66; --g-deep:#2f8a5e;
+    --err:#d6603c; --radius:18px; --shadow:0 10px 30px -14px rgba(120,90,55,.28);
+  }
+  *{box-sizing:border-box;}
+  body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.6;}
+  .topbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .topbar h1{font-size:16px;font-weight:800;flex:1;min-width:150px;margin:0;}
+  .badge{background:var(--brand);color:#fff;font-size:13px;font-weight:700;padding:4px 12px;border-radius:999px;white-space:nowrap;}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);white-space:nowrap;}
+  .btn-brand{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .wrap{max-width:840px;margin:18px auto;padding:0 14px 50px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow);}
+  .stat .num{font-size:30px;font-weight:800;color:var(--brand);}
+  .stat .lbl{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .card h2{font-size:15px;font-weight:800;margin:0 0 14px;}
+  .floor-line{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .floor-line .fl{flex-shrink:0;width:64px;font-size:13.5px;font-weight:700;color:var(--ink-soft);}
+  .floor-line .track{flex:1;height:18px;background:#f0e9dd;border-radius:9px;overflow:hidden;}
+  .floor-line .fill{height:100%;border-radius:9px;background:var(--g4);transition:width .5s;}
+  .floor-line .c{flex-shrink:0;width:74px;text-align:left;font-size:12.5px;font-weight:700;}
+  .floor-line .c .stop{color:var(--g-deep);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:right;padding:9px 10px;border-bottom:2px solid var(--line);font-weight:700;color:var(--ink-soft);}
+  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);}
+  .loading,.err{text-align:center;padding:50px;color:var(--ink-muted);}
+  .err{color:var(--err);}
+  @media print{ .no-print{display:none!important;} body{background:#fff;} .card,.stat{box-shadow:none;} @page{size:A4;margin:1.4cm;} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🛗 מעלית שבת — אדמין</h1>
+  <span class="badge" id="countBadge">טוען…</span>
+  <button class="btn" onclick="loadData()">🔄 רענן</button>
+  <button class="btn btn-brand no-print" onclick="window.print()">🖨️ הדפס / PDF</button>
+</div>
+
+<div class="wrap">
+  <div class="loading" id="loadingMsg">טוען נתונים…</div>
+  <div class="err" id="errMsg" style="display:none">שגיאה בטעינה — נסה לרענן</div>
+
+  <div id="content" style="display:none">
+    <div class="grid3">
+      <div class="stat"><div class="num" id="stTotal">0</div><div class="lbl">דירות נרשמו</div></div>
+      <div class="stat"><div class="num" id="stFloors">0</div><div class="lbl">קומות עם ביקוש</div></div>
+      <div class="stat"><div class="num" id="stTop">—</div><div class="lbl">הקומה המבוקשת</div></div>
+    </div>
+
+    <div class="card">
+      <h2>ביקוש לפי קומה <span style="font-weight:500;color:var(--ink-muted);font-size:12.5px">(⏹ = מומלץ שהמעלית תעצור)</span></h2>
+      <div id="floorBreakdown"></div>
+    </div>
+
+    <div class="card">
+      <h2>רשימת נרשמים</h2>
+      <table>
+        <thead><tr><th>#</th><th>קומה</th><th>דירה</th><th>שם</th><th class="no-print">זמן</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKFZgmX7gvMUWGo1MCgL3BHGl59KJaJ7z_ogww2USv3FNx1wkePC9spYt9FxjSYWoS3w/exec'; // ← הדבק כאן את כתובת ה-/exec של הפריסה החדשה
+const FLOORS = 14;
+
+let ADMIN_PW = sessionStorage.getItem('admin_pw') || '';
+
+function showLogin(errMsg){
+  document.body.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fbf7f1;font-family:Heebo,sans-serif;direction:rtl">' +
+    '  <div style="background:#fff;border-radius:18px;padding:36px;width:300px;text-align:center;border:1px solid #ece2d4;box-shadow:0 10px 30px -14px rgba(120,90,55,.28)">' +
+    '    <div style="font-size:40px;margin-bottom:14px">🔒</div>' +
+    '    <h2 style="font-size:16px;margin:0 0 20px;font-weight:800">דף מנהל — נדרשת סיסמה</h2>' +
+    '    <input type="password" id="pwInput" placeholder="סיסמה" autofocus ' +
+    '      style="width:100%;padding:12px;border:1.5px solid #ece2d4;border-radius:12px;font-size:15px;text-align:center;margin-bottom:12px;font-family:inherit;direction:ltr" ' +
+    '      onkeydown="if(event.key===\'Enter\')window.checkPw()" />' +
+    '    <button onclick="window.checkPw()" style="width:100%;padding:12px;background:#e08a4b;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">כניסה</button>' +
+    '    <div id="pwErr" style="color:#d6603c;font-size:13px;margin-top:10px;' + (errMsg ? '' : 'display:none') + '">' + (errMsg || '❌ סיסמה שגויה') + '</div>' +
+    '  </div>' +
+    '</div>';
+}
+window.checkPw = function(){
+  ADMIN_PW = document.getElementById('pwInput').value;
+  sessionStorage.setItem('admin_pw', ADMIN_PW);
+  location.reload();
+};
+
+function loadData(){
+  document.getElementById('loadingMsg').style.display = 'block';
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('errMsg').style.display = 'none';
+  fetch(SCRIPT_URL, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify({ action:'getAll', pw: ADMIN_PW }) })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.status === 'unauthorized') { sessionStorage.removeItem('admin_pw'); showLogin('❌ סיסמה שגויה'); return; }
+      render(data.entries || []);
+    })
+    .catch(function(){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('errMsg').style.display = 'block';
+    });
+}
+
+function render(entries){
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  var floorCounts = {};
+  var apts = {};
+  entries.forEach(function(e){
+    var f = parseInt(e.floor, 10);
+    if (!isNaN(f)) floorCounts[f] = (floorCounts[f] || 0) + 1;
+    var a = parseInt(e.apt, 10);
+    if (!isNaN(a)) apts[a] = true;
+  });
+  var total = Object.keys(apts).length;
+  var withDemand = Object.keys(floorCounts).length;
+  var maxCount = 0, topFloor = '—';
+  Object.keys(floorCounts).forEach(function(f){ if (floorCounts[f] > maxCount) { maxCount = floorCounts[f]; topFloor = 'קומה ' + f; } });
+
+  document.getElementById('countBadge').textContent = total + ' נרשמו';
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stFloors').textContent = withDemand;
+  document.getElementById('stTop').textContent = topFloor;
+
+  // פילוח לפי קומה (מהגבוהה לנמוכה)
+  var bd = document.getElementById('floorBreakdown');
+  bd.innerHTML = '';
+  for (var f = FLOORS; f >= 1; f--) {
+    var c = floorCounts[f] || 0;
+    var line = document.createElement('div'); line.className = 'floor-line';
+    var fl = document.createElement('div'); fl.className = 'fl'; fl.textContent = 'קומה ' + f;
+    var track = document.createElement('div'); track.className = 'track';
+    var fill = document.createElement('div'); fill.className = 'fill';
+    fill.style.width = (maxCount ? Math.round(c / maxCount * 100) : 0) + '%';
+    if (c === 0) fill.style.background = 'transparent';
+    track.appendChild(fill);
+    var cc = document.createElement('div'); cc.className = 'c';
+    cc.textContent = c + (c > 0 ? '  ' : '');
+    if (c > 0) { var s = document.createElement('span'); s.className = 'stop'; s.textContent = '⏹'; cc.appendChild(s); }
+    line.appendChild(fl); line.appendChild(track); line.appendChild(cc);
+    bd.appendChild(line);
+  }
+
+  // רשימה — שם עם textContent (בטוח מ-XSS), ממוין לפי קומה יורד
+  var tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  entries.slice().sort(function(a,b){ return (parseInt(b.floor,10)||0) - (parseInt(a.floor,10)||0); })
+    .forEach(function(e, idx){
+      var tr = document.createElement('tr');
+      [idx + 1, e.floor || '—', e.apt || '—', e.name || '—'].forEach(function(v){
+        var td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+      });
+      var tdTs = document.createElement('td'); tdTs.className = 'no-print'; tdTs.textContent = e.ts || ''; tr.appendChild(tdTs);
+      tbody.appendChild(tr);
+    });
+}
+
+if (!ADMIN_PW) { document.addEventListener('DOMContentLoaded', function(){ showLogin(); }); }
+else { loadData(); }
+</script>
+</body>
+</html>
