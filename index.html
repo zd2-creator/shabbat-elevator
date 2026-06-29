@@ -64,6 +64,14 @@
   input:focus,select:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(224,138,75,.16);}
   input.invalid,select.invalid{border-color:var(--err);box-shadow:0 0 0 4px rgba(214,96,60,.14);}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  .want-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .want-card{border:2px solid var(--line);border-radius:var(--radius-sm);padding:16px 10px;text-align:center;cursor:pointer;background:var(--bg-warm);transition:border-color .15s,background .15s,transform .12s;display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .want-card:hover{border-color:#dccbb2;transform:translateY(-2px);}
+  .want-card:focus-visible{outline:3px solid rgba(224,138,75,.5);outline-offset:2px;}
+  .want-card .wc-icon{font-size:30px;line-height:1;}
+  .want-card .wc-name{font-size:15px;font-weight:700;color:var(--ink);}
+  .want-card.sel-yes{border-color:var(--g4);background:var(--g1);box-shadow:0 8px 20px -12px rgba(63,174,102,.6);}
+  .want-card.sel-no{border-color:#d9a48a;background:#fbeae2;box-shadow:0 8px 20px -12px rgba(200,110,75,.5);}
   .err-text{display:none;color:var(--err);font-size:13px;font-weight:500;margin-top:7px;}
   .err-text.show{display:block;}
 
@@ -144,6 +152,21 @@
       <p class="err-text" id="nameErr"></p>
     </div>
 
+    <div class="field">
+      <label class="lbl">האם תרצו שמעלית השבת תעצור בקומתכם? <span class="req">*</span></label>
+      <div class="want-cards">
+        <div class="want-card" id="wantYes" role="button" tabindex="0" onclick="selectWant('yes')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWant('yes')}">
+          <div class="wc-icon">🛗</div>
+          <div class="wc-name">כן, אשמח</div>
+        </div>
+        <div class="want-card" id="wantNo" role="button" tabindex="0" onclick="selectWant('no')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWant('no')}">
+          <div class="wc-icon">🚫</div>
+          <div class="wc-name">אין צורך</div>
+        </div>
+      </div>
+      <p class="err-text" id="wantErr"></p>
+    </div>
+
     <button class="submit-btn" id="submitBtn">רשום/י אותי ✓</button>
     <div class="loading" id="loading">שולח… <span class="mini-spin"></span></div>
   </div>
@@ -186,6 +209,15 @@ const BUILDING_NAME = '110';
 
 const floorRows = {}; // floor number -> row element
 let activeFloors = [], carIdx = 0, carTimer = null;
+let selectedWant = null;
+
+// בחירת "רוצה מעלית" / "אין צורך"
+function selectWant(v){
+  selectedWant = v;
+  document.getElementById('wantYes').className = 'want-card' + (v === 'yes' ? ' sel-yes' : '');
+  document.getElementById('wantNo').className  = 'want-card' + (v === 'no'  ? ' sel-no'  : '');
+  clearError('want');
+}
 
 // בניית בורר הקומות
 (function buildFloorSelect(){
@@ -248,10 +280,10 @@ function loadProgress(){
   fetch(SCRIPT_URL + '?action=progress', { method:'GET' })
     .then(function(r){ return r.json(); })
     .then(function(data){
-      const fc = data.floorCounts || {};
+      const fw = data.floorWant || {};
       activeFloors = [];
       for (let f = 1; f <= FLOORS; f++) {
-        const c = parseInt(fc[f], 10) || 0;
+        const c = parseInt(fw[f], 10) || 0;
         const ref = floorRows[f]; if (!ref) continue;
         ref.count.textContent = c;
         ref.fill.style.width = Math.min(c, 5) / 5 * 100 + '%';
@@ -260,9 +292,10 @@ function loadProgress(){
       }
       activeFloors.sort(function(a,b){ return a - b; });
       const total = data.count || 0;
-      const floorsWithDemand = activeFloors.length;
+      const wantC = data.wantCount || 0;
+      const noC = data.noCount || 0;
       document.getElementById('prog').innerHTML =
-        '<strong>' + total + '</strong> דירות נרשמו · <strong>' + floorsWithDemand + '</strong> קומות עם ביקוש';
+        '<strong>' + total + '</strong> נרשמו · <strong>' + wantC + '</strong> רוצים מעלית · ' + noC + ' לא צריך';
       runElevator();
     })
     .catch(function(){ document.getElementById('prog').textContent = 'לא ניתן לטעון את הנתונים כרגע.'; });
@@ -291,13 +324,14 @@ document.getElementById('submitBtn').addEventListener('click', function(){
   const floor = document.getElementById('floor').value.trim();
   const apt = document.getElementById('apt').value.trim();
   const name = document.getElementById('name').value.trim();
-  clearError('floor'); clearError('apt'); clearError('name');
+  clearError('floor'); clearError('apt'); clearError('name'); clearError('want');
 
   let ok = true, firstBad = null;
   if (!floor) { showError('floor','נא לבחור קומה.'); ok = false; firstBad = firstBad || 'floor'; }
   if (!apt || isNaN(parseInt(apt,10))) { showError('apt','נא להזין מספר דירה.'); ok = false; firstBad = firstBad || 'apt'; }
   if (!name) { showError('name','נא להזין שם.'); ok = false; firstBad = firstBad || 'name'; }
-  if (!ok) { document.getElementById(firstBad).focus(); return; }
+  if (!selectedWant) { showError('want','נא לבחור אם תרצו מעלית שבת או לא.'); ok = false; firstBad = firstBad || 'wantYes'; }
+  if (!ok) { var bad = document.getElementById(firstBad); if (bad) bad.focus(); return; }
 
   const btn = document.getElementById('submitBtn');
   const loading = document.getElementById('loading');
@@ -316,9 +350,9 @@ document.getElementById('submitBtn').addEventListener('click', function(){
       }
       return fetch(SCRIPT_URL, {
         method:'POST', headers:{ 'Content-Type':'text/plain' },
-        body: JSON.stringify({ action:'submit', apt: parseInt(apt,10), floor: parseInt(floor,10), name: name })
+        body: JSON.stringify({ action:'submit', apt: parseInt(apt,10), floor: parseInt(floor,10), name: name, want: selectedWant })
       }).then(function(r){ return r.json(); }).then(function(res){
-        if (res && res.status === 'ok') { onSuccess(apt, floor, name); }
+        if (res && res.status === 'ok') { onSuccess(apt, floor, name, selectedWant); }
         else { throw new Error((res && res.message) || 'error'); }
       });
     })
@@ -328,11 +362,12 @@ document.getElementById('submitBtn').addEventListener('click', function(){
     });
 });
 
-function onSuccess(apt, floor, name){
+function onSuccess(apt, floor, name, want){
   document.getElementById('formCard').style.display = 'none';
   const msg = document.getElementById('successMsg');
   // טקסט מוצג עם textContent (בטוח מ-XSS)
-  msg.textContent = name + ', דירה ' + apt + ' בקומה ' + floor + ' — נרשמה לבקשת מעלית שבת.';
+  const tail = (want === 'no') ? ' — נרשם שאין צורך במעלית שבת. תודה!' : ' — בקשתך למעלית שבת נרשמה. תודה!';
+  msg.textContent = name + ', דירה ' + apt + ' בקומה ' + floor + tail;
   document.getElementById('successCard').style.display = 'block';
   loadProgress();
 }
