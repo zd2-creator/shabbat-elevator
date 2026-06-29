@@ -32,7 +32,7 @@
   .floor-line .fl{flex-shrink:0;width:64px;font-size:13.5px;font-weight:700;color:var(--ink-soft);}
   .floor-line .track{flex:1;height:18px;background:#f0e9dd;border-radius:9px;overflow:hidden;}
   .floor-line .fill{height:100%;border-radius:9px;background:var(--g4);transition:width .5s;}
-  .floor-line .c{flex-shrink:0;width:74px;text-align:left;font-size:12.5px;font-weight:700;}
+  .floor-line .c{flex-shrink:0;width:104px;text-align:left;font-size:12.5px;font-weight:700;}
   .floor-line .c .stop{color:var(--g-deep);}
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   th{text-align:right;padding:9px 10px;border-bottom:2px solid var(--line);font-weight:700;color:var(--ink-soft);}
@@ -57,9 +57,9 @@
 
   <div id="content" style="display:none">
     <div class="grid3">
-      <div class="stat"><div class="num" id="stTotal">0</div><div class="lbl">דירות נרשמו</div></div>
-      <div class="stat"><div class="num" id="stFloors">0</div><div class="lbl">קומות עם ביקוש</div></div>
-      <div class="stat"><div class="num" id="stTop">—</div><div class="lbl">הקומה המבוקשת</div></div>
+      <div class="stat"><div class="num" id="stTotal">0</div><div class="lbl">נרשמו</div></div>
+      <div class="stat"><div class="num" id="stFloors">0</div><div class="lbl">רוצים מעלית</div></div>
+      <div class="stat"><div class="num" id="stTop">0</div><div class="lbl">אין צורך</div></div>
     </div>
 
     <div class="card">
@@ -70,7 +70,7 @@
     <div class="card">
       <h2>רשימת נרשמים</h2>
       <table>
-        <thead><tr><th>#</th><th>קומה</th><th>דירה</th><th>שם</th><th class="no-print">זמן</th></tr></thead>
+        <thead><tr><th>#</th><th>קומה</th><th>דירה</th><th>שם</th><th>בחירה</th><th class="no-print">זמן</th></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
@@ -123,29 +123,35 @@ function render(entries){
   document.getElementById('loadingMsg').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 
-  var floorCounts = {};
+  var floorWant = {}, floorNo = {};
   var apts = {};
+  var wantTotal = 0, noTotal = 0;
   entries.forEach(function(e){
+    var wantsIt = String(e.want) !== 'no';
     var f = parseInt(e.floor, 10);
-    if (!isNaN(f)) floorCounts[f] = (floorCounts[f] || 0) + 1;
+    if (!isNaN(f)) {
+      if (wantsIt) floorWant[f] = (floorWant[f] || 0) + 1;
+      else         floorNo[f]   = (floorNo[f]   || 0) + 1;
+    }
+    if (wantsIt) wantTotal++; else noTotal++;
     var a = parseInt(e.apt, 10);
     if (!isNaN(a)) apts[a] = true;
   });
   var total = Object.keys(apts).length;
-  var withDemand = Object.keys(floorCounts).length;
-  var maxCount = 0, topFloor = '—';
-  Object.keys(floorCounts).forEach(function(f){ if (floorCounts[f] > maxCount) { maxCount = floorCounts[f]; topFloor = 'קומה ' + f; } });
+  var maxCount = 0;
+  for (var mf = 1; mf <= FLOORS; mf++) { if ((floorWant[mf] || 0) > maxCount) maxCount = floorWant[mf]; }
 
   document.getElementById('countBadge').textContent = total + ' נרשמו';
   document.getElementById('stTotal').textContent = total;
-  document.getElementById('stFloors').textContent = withDemand;
-  document.getElementById('stTop').textContent = topFloor;
+  document.getElementById('stFloors').textContent = wantTotal;
+  document.getElementById('stTop').textContent = noTotal;
 
   // פילוח לפי קומה (מהגבוהה לנמוכה)
   var bd = document.getElementById('floorBreakdown');
   bd.innerHTML = '';
   for (var f = FLOORS; f >= 1; f--) {
-    var c = floorCounts[f] || 0;
+    var c = floorWant[f] || 0;
+    var n = floorNo[f] || 0;
     var line = document.createElement('div'); line.className = 'floor-line';
     var fl = document.createElement('div'); fl.className = 'fl'; fl.textContent = 'קומה ' + f;
     var track = document.createElement('div'); track.className = 'track';
@@ -154,8 +160,9 @@ function render(entries){
     if (c === 0) fill.style.background = 'transparent';
     track.appendChild(fill);
     var cc = document.createElement('div'); cc.className = 'c';
-    cc.textContent = c + (c > 0 ? '  ' : '');
+    cc.textContent = c + (c > 0 ? ' ' : '');
     if (c > 0) { var s = document.createElement('span'); s.className = 'stop'; s.textContent = '⏹'; cc.appendChild(s); }
+    if (n > 0) { var sn = document.createElement('span'); sn.style.color = '#c0704f'; sn.style.marginRight = '6px'; sn.style.fontSize = '11.5px'; sn.textContent = '🚫' + n; cc.appendChild(sn); }
     line.appendChild(fl); line.appendChild(track); line.appendChild(cc);
     bd.appendChild(line);
   }
@@ -169,6 +176,7 @@ function render(entries){
       [idx + 1, e.floor || '—', e.apt || '—', e.name || '—'].forEach(function(v){
         var td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
       });
+      var tdW = document.createElement('td'); tdW.textContent = (String(e.want) === 'no') ? '🚫 אין צורך' : '🛗 רוצה'; tr.appendChild(tdW);
       var tdTs = document.createElement('td'); tdTs.className = 'no-print'; tdTs.textContent = e.ts || ''; tr.appendChild(tdTs);
       tbody.appendChild(tr);
     });
