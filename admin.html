@@ -78,7 +78,8 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKFZgmX7gvMUWGo1MCgL3BHGl59KJaJ7z_ogww2USv3FNx1wkePC9spYt9FxjSYWoS3w/exec'; // ← הדבק כאן את כתובת ה-/exec של הפריסה החדשה
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxn7f1-PycwsK8oh9uElLX_L6pe_bCwP7cg64k5YM97ybZ0GTssn3p5ziJX-vb47yVW/exec'; // ה-Backend המאוחד של בניין 110
+const SHEET  = 'מעלית';
 const FLOORS = 14;
 
 let ADMIN_PW = sessionStorage.getItem('admin_pw') || '';
@@ -107,10 +108,12 @@ function loadData(){
   document.getElementById('loadingMsg').style.display = 'block';
   document.getElementById('content').style.display = 'none';
   document.getElementById('errMsg').style.display = 'none';
-  fetch(SCRIPT_URL, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify({ action:'getAll', pw: ADMIN_PW }) })
+  fetch(SCRIPT_URL, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify({ action:'getAll', sheet: SHEET, password: ADMIN_PW }) })
     .then(function(r){ return r.json(); })
     .then(function(data){
+      if (data.status === 'locked') { sessionStorage.removeItem('admin_pw'); showLogin('🚫 יותר מדי ניסיונות שגויים — הכניסה נחסמה ל-15 דקות'); return; }
       if (data.status === 'unauthorized') { sessionStorage.removeItem('admin_pw'); showLogin('❌ סיסמה שגויה'); return; }
+      if (data.status !== 'ok') { throw new Error(); }
       render(data.entries || []);
     })
     .catch(function(){
